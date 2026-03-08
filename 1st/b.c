@@ -3,9 +3,9 @@
 
 int main() {
     int N, K;
-    double x = 999999;
     scanf("%d %d", &N, &K);
     int c[N];
+    double x = 999999;
 
     for (int i = 0; i < N; i++) scanf("%d", &c[i]);
     for (int i = 0; i < N + 1 - K; i++) {

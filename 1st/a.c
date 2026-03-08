@@ -7,6 +7,7 @@ int main() {
     for (int i = 0; i < a; i++) {
         int b, c;
         scanf("%d %d", &b, &c);
+        
         if (b == 0) x += 0;
         else if (b < 2) x += 5000000;
         else if (b < 4) x += 3000000;
