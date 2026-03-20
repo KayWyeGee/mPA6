@@ -1,0 +1,60 @@
+1번
+A1 = [1 4 2; 2 4 100; 7 9 7; 3 pi 42];
+B1 = log(A1);
+
+a1 = B1(2, :);
+b1 = sum(a1)
+c1 = B1(:, 2) .* A1(:, 1)
+d1 = max(c1)
+e1 = sum(A1(1, :) ./ B1(1:3, 3))
+
+
+2번
+y2 = [-0.5 * 9.81, 50 * sind(50), 0];
+tHit = (2 * 50 * sind(50)) / 9.81
+yMax = polyval(y2, roots(polyder(y2)))
+
+t2 = linspace(0, tHit, 1000);
+x2 = 50 * cosd(50) * t2;
+plot(x2, polyval(y2, t2));
+xlabel('x');
+ylabel('y');
+title('포물선 운동');
+legend('궤적');
+grid on
+
+
+3번
+x3 = linspace(-2, 16, 1000);
+f3 = 4 * cos(x3) ./ (x3 + exp(-0.75 * x3));
+figure;
+plot(x3, f3);
+xlabel('x');
+ylabel('f(x)');
+title('f(x)');
+legend('f(x) = 4 * cos(x3) ./ (x3 + exp(-0.75 * x3))');
+grid on;
+
+
+4번
+a4 = [5 4 6; 3 2 4; 6 5 3; 3 5 4; 2 4 3]
+b4 = sum(a4, 1)
+c4 = sum(a4, 2)
+d4 = sum(a4, "all")
+
+
+5번
+a5 = conv([5 0 -3 7 10], [4 -7 9 2])
+[bq5, br5] = deconv([5 -7 2 8], [6 3 -2])
+c5 = polyval([36 -8 0 2], 5) / polyval([36 -5 4 -3], 5)
+
+
+7번
+a7(1) = struct('L', 'Smith St.', 'M', 80, 'G', 1928, 'Y', 2025)
+a7(2) = struct('L', 'Hope Ave.', 'M', 90, 'G', 1950, 'Y', 2027)
+a7(3) = struct('L', 'Clark St.', 'M', 85, 'G', 1933, 'Y', 2024)
+a7(4) = struct('L', 'North Rd.', 'M', 100, 'G', 1960, 'Y', 2023)
+
+a7(3).Y = 2026
+a7(5) = struct('L', 'Shore Rd.', 'M', 85, 'G', 1997, 'Y', 2022)
+
