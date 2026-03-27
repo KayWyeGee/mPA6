@@ -1,0 +1,91 @@
+x1_range = [0, 4];
+
+figure;
+fplot(@kyg_25012341_func_1, x1_range, 'LineWidth', 1.5, 'DisplayName', 'f(x1)');
+hold on; grid on;
+
+root1_1 = fzero(@kyg_25012341_func_1, 0);
+root1_2 = fzero(@kyg_25012341_func_1, 1.5);
+root1_3 = fzero(@kyg_25012341_func_1, 2.5);
+
+fprintf('x1 = %.4f, %.4f, %.4f\n', root1_1, root1_2, root1_3);
+
+[x1_min, y1_min] = fminbnd(@kyg_25012341_func_1, 0, 4);
+fprintf('최소값 위치: x1 = %.4f, 최소값 = %.4f\n', x1_min, y1_min);
+
+plot(x1_min, y1_min, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r', 'DisplayName', 'Minimum');
+yline(0, 'k--', 'DisplayName', 'y = 0');
+title('Problem 1: Root and Minimum'); xlabel('x1'); ylabel('y1');
+legend('Location', 'best');
+
+h2_target = 100;
+v02_init = 50;
+g2_const = 9.81;
+
+[t2_1, t2_2] = kyg_25012341_func_2(h2_target, v02_init, g2_const);
+
+fprintf('도달 시간: 상승 t2 = %.4f초, 하강 t2 = %.4f초\n', t2_1, t2_2);
+
+global V3;
+V3 = 10;
+
+r3_opt = fminbnd(@kyg_25012341_func_3, 0.5, 5); 
+A3_min = kyg_25012341_func_3(r3_opt);
+h3_opt = 3 * V3 / (pi * r3_opt^2);
+
+fprintf('r3: %.4f in\n', r3_opt);
+fprintf('h3: %.4f in\n', h3_opt);
+fprintf('A3: %.4f in^2\n', A3_min);
+
+r3_vals = linspace(0.5, 5, 100);
+A3_vals = kyg_25012341_func_3(r3_vals);
+
+figure;
+plot(r3_vals, A3_vals, 'b-', 'LineWidth', 1.5, 'DisplayName', 'A3(r3)');
+hold on; grid on;
+plot(r3_opt, A3_min, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r', 'DisplayName', 'Minimum');
+
+A3_limit = A3_min * 1.1;
+yline(A3_limit, 'k--', 'DisplayName', '+10% Area');
+
+r3_low = fzero(@(r3) kyg_25012341_func_3(r3) - A3_limit, [0.5, r3_opt]);
+r3_high = fzero(@(r3) kyg_25012341_func_3(r3) - A3_limit, [r3_opt, 5]);
+
+plot([r3_low, r3_high], [A3_limit, A3_limit], 'k*', 'MarkerSize', 8, 'DisplayName', 'Limits');
+title('Problem 3: Sensitivity'); xlabel('Radius r3 (in)'); ylabel('Area A3 (in^2)');
+legend('Location', 'best');
+
+fprintf('r3의 범위: %.4f in ~ %.4f in\n', r3_low, r3_high);
+
+f4 = @(x4) 10 * exp(-2 * x4);
+
+figure;
+fplot(f4, [0, 2], 'LineWidth', 1.5, 'DisplayName', '10e^{-2*x4}');
+grid on;
+title('Problem 4: Anonymous Function'); xlabel('x4'); ylabel('f4(x4)');
+legend('Location', 'best');
+
+f5 = @(x5) 30 * x5.^2 - 300 * x5 + 4;
+
+figure;
+fplot(f5, [0, 10], 'LineWidth', 1.5, 'DisplayName', 'f5(x5)');
+hold on; grid on;
+
+[x5_min, y5_min] = fminbnd(f5, 0, 10);
+plot(x5_min, y5_min, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r', 'DisplayName', 'Minimum');
+title('Problem 5: Minimum of Polynomial'); xlabel('x5'); ylabel('f5(x5)');
+legend('Location', 'best');
+
+fprintf('x5: %.4f\n', x5_min);
+
+f6_x = @(x6) x6.^2;
+g6_y = @(y6) 3 * cos(y6);
+h6_z = @(z6) 6 * exp(z6);
+
+comp6_func = @(x6) h6_z(g6_y(f6_x(x6)));
+
+figure;
+fplot(comp6_func, [0, 4], 'LineWidth', 1.5, 'DisplayName', 'Composite Function');
+grid on;
+title('Problem 6: 6e^{3cos(x6^2)}'); xlabel('x6'); ylabel('comp6_func(x6)');
+legend('Location', 'best');
