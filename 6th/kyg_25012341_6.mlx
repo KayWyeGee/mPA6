@@ -1,0 +1,191 @@
+%% 1번
+clear;
+clc;
+
+x1 = input('실수 x: ');
+
+if x1 > 0
+    y1 = x1^2;
+else
+    y1 = 0;
+end
+
+fprintf('y = %.6g\n', y1);
+
+%% 2번
+clear;
+clc;
+
+m2 = input('월 번호: ');
+
+switch m2
+    case 1
+        month2 = '1월';
+    case 2
+        month2 = '2월';
+    case 3
+        month2 = '3월';
+    case 4
+        month2 = '4월';
+    otherwise
+        month2 = '잘못된 월';
+end
+
+disp(month2);
+
+%% 3번
+clear;
+clc;
+
+x3 = [3, -5, 0, 8, -2, 4, -7];
+count3 = 0;
+
+for k3 = 1:length(x3)
+    if x3(k3) < 0
+        count3 = count3 + 1;
+    end
+end
+
+fprintf('음수 개수 = %d\n', count3);
+
+%% 4번
+clear;
+clc;
+
+x4 = [4, -9, 0, 16, -1, 25];
+y4 = zeros(size(x4));
+
+for k4 = 1:length(x4)
+    if x4(k4) > 0
+        y4(k4) = sqrt(x4(k4));
+    elseif x4(k4) == 0
+        y4(k4) = x4(k4);
+    else
+        y4(k4) = abs(x4(k4));
+    end
+end
+
+disp('y = ');
+disp(y4);
+
+%% 5번
+clear;
+clc;
+
+a5 = input('a: ');
+b5 = input('b: ');
+cmd5 = lower(strtrim(input('명령어(add, sub, mul, div): ', 's')));
+
+switch cmd5
+    case 'add'
+        result5 = a5 + b5;
+        fprintf('결과 = %.6g\n', result5);
+
+    case 'sub'
+        result5 = a5 - b5;
+        fprintf('결과 = %.6g\n', result5);
+
+    case 'mul'
+        result5 = a5 * b5;
+        fprintf('결과 = %.6g\n', result5);
+
+    case 'div'
+        if b5 == 0
+            disp('0으로 나눔');
+        else
+            result5 = a5 / b5;
+            fprintf('결과 = %.6g\n', result5);
+        end
+
+    otherwise
+        disp('잘못된 명령어');
+end
+
+%% 6번
+clear;
+clc;
+
+N6 = input('양의 정수 N: ');
+sum6 = 0;
+
+for k6 = 1:N6
+    if mod(k6, 3) == 0 && mod(k6, 2) ~= 0
+        sum6 = sum6 + k6;
+    end
+end
+
+fprintf('합 = %d\n', sum6);
+
+%% 7번
+clear;
+clc;
+
+N7 = input('양의 정수 N: ');
+a7 = zeros(1, N7);
+
+for k7 = 1:N7
+    if mod(k7, 2) == 1
+        a7(k7) = k7^2;
+    else
+        a7(k7) = k7^3;
+    end
+end
+
+disp('a = ');
+disp(a7);
+
+%% 8번
+clear;
+clc;
+
+price8 = [19, 18, 22, 21, 25, 19, 17, 21, 27, 29];
+shares8 = 1000;
+buyAmount8 = 0;
+sellAmount8 = 0;
+initialValue8 = shares8 * price8(1);
+
+for day8 = 1:length(price8)
+    if price8(day8) < 20
+        buyAmount8 = buyAmount8 + 100 * price8(day8);
+        shares8 = shares8 + 100;
+    elseif price8(day8) > 25
+        sellAmount8 = sellAmount8 + 100 * price8(day8);
+        shares8 = shares8 - 100;
+    end
+end
+
+finalStockValue8 = shares8 * price8(end);
+finalPortfolioValue8 = finalStockValue8 + sellAmount8 - buyAmount8;
+valueIncrease8 = finalPortfolioValue8 - initialValue8;
+
+fprintf('매수 금액 = $%.2f\n', buyAmount8);
+fprintf('매도 금액 = $%.2f\n', sellAmount8);
+fprintf('10일 후 주식 수 = %d\n', shares8);
+fprintf('총 자산 증가 = $%.2f\n', valueIncrease8);
+
+%% 9번
+clear;
+clc;
+
+connection9 = strtrim(input('연결 방식(직렬/병렬): ', 's'));
+n9 = input('저항 개수 n: ');
+R9 = zeros(1, n9);
+
+for k9 = 1:n9
+    R9(k9) = input(sprintf('R%d: ', k9));
+end
+
+connectionLower9 = lower(connection9);
+
+switch connectionLower9
+    case {'직렬'}
+        Req9 = sum(R9);
+        fprintf('합성저항 = %.6g ohm\n', Req9);
+
+    case {'병렬'}
+        Req9 = 1 / sum(1 ./ R9);
+        fprintf('합성저항 = %.6g ohm\n', Req9);
+
+    otherwise
+        disp('잘못된 연결 방식');
+end
