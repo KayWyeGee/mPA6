@@ -1,0 +1,442 @@
+%% 1. 시간에 따른 신호와 국소 최대값 후보
+
+clear; clc;
+
+t = 0:0.01:30;
+
+f = exp(-0.12*t).*sin(5*t) + 0.3*cos(2*t);
+
+u = exp(-0.12*t) + 0.3;
+l = -exp(-0.12*t) - 0.3;
+
+idx = find(f(2:end-1) > f(1:end-2) & f(2:end-1) > f(3:end)) + 1;
+
+figure;
+plot(t, f, 'b-', 'LineWidth', 1.2);
+hold on;
+plot(t, u, 'r--', 'LineWidth', 1.2);
+plot(t, l, 'k--', 'LineWidth', 1.2);
+plot(t(idx), f(idx), 'ro', 'MarkerSize', 6, 'LineWidth', 1.2);
+grid on;
+
+xlabel('t');
+ylabel('f(t)');
+title('Signal f(t) with Upper/Lower Curves and Local Max Candidates');
+legend('f(t)', 'u(t)', 'l(t)', 'Local max candidates');
+
+localMaxTable = table(idx.', t(idx).', f(idx).', ...
+    'VariableNames', {'Index', 't_value', 'f_value'});
+
+disp('국소 최대값 후보의 index, t값, f(t)값');
+disp(localMaxTable);
+
+%% 2. 2변수 함수 z = sin(xy)/(1+x^2+y^2)
+
+clear; clc;
+
+x = -5:0.05:5;
+y = -5:0.05:5;
+
+[X, Y] = meshgrid(x, y);
+
+Z = sin(X.*Y) ./ (1 + X.^2 + Y.^2);
+
+figure;
+mesh(X, Y, Z);
+grid on;
+xlabel('x');
+ylabel('y');
+zlabel('z');
+title('Mesh Plot of z = sin(xy)/(1+x^2+y^2)');
+
+figure;
+contour(X, Y, Z, 25);
+grid on;
+xlabel('x');
+ylabel('y');
+title('Contour Plot of z');
+colorbar;
+
+absZ = abs(Z);
+[maxAbsZ, idx] = max(absZ(:));
+
+[row, col] = ind2sub(size(Z), idx);
+
+xAbsMax = x(col);
+yAbsMax = y(row);
+
+fprintf('|Z|의 최댓값: %.6f\n', maxAbsZ);
+fprintf('|Z|가 최대가 되는 위치: x = %.2f, y = %.2f\n', xAbsMax, yAbsMax);
+fprintf('그 위치에서의 Z 값: %.6f\n', Z(row, col));
+
+%% 3. 행렬 A의 고유값과 고유벡터 분석
+
+clear; clc;
+
+A = [7 2 1;
+     2 6 -2;
+     1 -2 5];
+
+[V, D] = eig(A);
+
+eigValues = diag(D);
+
+[lambdaMax, idx] = max(eigValues);
+
+v = V(:, idx);
+
+vUnit = v / norm(v);
+
+residual = A*v - lambdaMax*v;
+
+disp('고유벡터 행렬 V');
+disp(V);
+
+disp('고유값 행렬 D');
+disp(D);
+
+disp('고유값 벡터');
+disp(eigValues);
+
+fprintf('가장 큰 고유값 lambdaMax = %.6f\n', lambdaMax);
+fprintf('가장 큰 고유값의 index = %d\n', idx);
+
+disp('가장 큰 고유값에 대응하는 고유벡터 v');
+disp(v);
+
+disp('단위벡터로 정규화한 v');
+disp(vUnit);
+
+disp('A*v - lambdaMax*v 계산 결과');
+disp(residual);
+
+%% 4. 데이터 행렬의 중심화와 고유값 분석
+
+clear; clc;
+
+X = [2 5 1;
+     4 8 3;
+     6 11 7;
+     9 15 10;
+     13 20 14];
+
+colMean = mean(X);
+
+Xc = X - colMean;
+
+S = Xc' * Xc;
+
+[V, D] = eig(S);
+
+eigValues = diag(D);
+
+[lambdaMax, idx] = max(eigValues);
+
+principalVector = V(:, idx);
+
+disp('각 열의 평균');
+disp(colMean);
+
+disp('중심화 행렬 Xc');
+disp(Xc);
+
+disp('S = Xc'' * Xc');
+disp(S);
+
+disp('S의 고유값');
+disp(eigValues);
+
+fprintf('가장 큰 고유값 = %.6f\n', lambdaMax);
+
+disp('가장 큰 고유값에 대응하는 고유벡터');
+disp(principalVector);
+
+%% 5. 연립방정식 풀이: inv(A)*b와 A\b 비교
+
+clear; clc;
+
+A = [5 2 -1;
+     -2 6 3;
+     1 -1 7];
+
+b = [8;
+     5;
+     12];
+
+x1 = inv(A) * b;
+
+x2 = A \ b;
+
+difference = x1 - x2;
+
+detA = det(A);
+
+disp('x1 = inv(A)*b 로 구한 해');
+disp(x1);
+
+disp('x2 = A\b 로 구한 해');
+disp(x2);
+
+disp('x1 - x2');
+disp(difference);
+
+fprintf('det(A) = %.6f\n', detA);
+
+if abs(detA) > 1e-12
+    disp('det(A)가 0이 아니므로 해가 유일하게 존재한다.');
+else
+    disp('det(A)가 0이므로 해가 유일하게 존재하지 않을 수 있다.');
+end
+
+%% 6. 2변수 함수 z = exp(-0.08(x^2+y^2))cos(3x)sin(2y)
+
+clear; clc;
+
+x = -6:0.05:6;
+y = -6:0.05:6;
+
+[X, Y] = meshgrid(x, y);
+
+Z = exp(-0.08*(X.^2 + Y.^2)) .* cos(3*X) .* sin(2*Y);
+
+figure;
+surf(X, Y, Z);
+grid on;
+xlabel('x');
+ylabel('y');
+zlabel('z');
+title('Surface Plot of z');
+colorbar;
+
+figure;
+contour(X, Y, Z, 30);
+grid on;
+xlabel('x');
+ylabel('y');
+title('Contour Plot of z');
+colorbar;
+
+[maxZ, idxMax] = max(Z(:));
+[minZ, idxMin] = min(Z(:));
+
+[rowMax, colMax] = ind2sub(size(Z), idxMax);
+[rowMin, colMin] = ind2sub(size(Z), idxMin);
+
+xMax = x(colMax);
+yMax = y(rowMax);
+
+xMin = x(colMin);
+yMin = y(rowMin);
+
+fprintf('Z의 최대값 = %.6f\n', maxZ);
+fprintf('최대값 위치: x = %.2f, y = %.2f\n', xMax, yMax);
+
+fprintf('Z의 최소값 = %.6f\n', minZ);
+fprintf('최소값 위치: x = %.2f, y = %.2f\n', xMin, yMin);
+
+
+%% 7. 사용자 수 n과 평균 응답시간 T의 그래프 비교
+
+clear; clc;
+
+n = [50, 100, 200, 400, 800, 1600];
+T = [14, 19, 30, 51, 92, 170];
+
+figure;
+
+subplot(1, 3, 1);
+plot(n, T, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('n');
+ylabel('T');
+title('plot(n,T)');
+
+subplot(1, 3, 2);
+semilogx(n, T, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('n');
+ylabel('T');
+title('semilogx(n,T)');
+
+subplot(1, 3, 3);
+semilogy(n, T, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('n');
+ylabel('T');
+title('semilogy(n,T)');
+세 그래프 중 일반 그래프 plot(n,T,'o-')가 점들이 가장 직선에 가깝게 보이는 그래프이다.
+%% 8. 하루 전력 사용량 P(t)의 최대값과 최소값
+
+clear; clc;
+
+t = 0:0.01:24;
+
+P = 50 + 18*sin(pi*t/12) + 6*cos(pi*t/4);
+
+[Pmax, idxMax] = max(P);
+[Pmin, idxMin] = min(P);
+
+tMax = t(idxMax);
+tMin = t(idxMin);
+
+figure;
+plot(t, P, 'b-', 'LineWidth', 1.2);
+hold on;
+plot(tMax, Pmax, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
+plot(tMin, Pmin, 'ks', 'MarkerSize', 8, 'LineWidth', 1.5);
+grid on;
+
+xlabel('t (hour)');
+ylabel('P(t)');
+title('Daily Power Usage');
+legend('P(t)', 'Maximum point', 'Minimum point');
+
+fprintf('최대 전력 사용량 = %.6f\n', Pmax);
+fprintf('최대 전력 사용량 발생 시간 = %.2f hour\n', tMax);
+
+fprintf('최소 전력 사용량 = %.6f\n', Pmin);
+fprintf('최소 전력 사용량 발생 시간 = %.2f hour\n', tMin);
+
+%% 9. 세 센서 측정값 벡터 사이의 각도 계산
+
+clear; clc;
+
+X = [1 3 0;
+     2 5 1;
+     4 8 3;
+     7 12 5;
+     11 17 9];
+
+x1 = X(:, 1);
+x2 = X(:, 2);
+x3 = X(:, 3);
+
+angleDeg = @(a, b) acosd(max(min(dot(a,b)/(norm(a)*norm(b)), 1), -1));
+
+theta12 = angleDeg(x1, x2);
+theta13 = angleDeg(x1, x3);
+theta23 = angleDeg(x2, x3);
+
+theta = [theta12, theta13, theta23];
+
+pairs = [1 2;
+         1 3;
+         2 3];
+
+[thetaMin, idx] = min(theta);
+
+bestPair = pairs(idx, :);
+
+disp('세 각도 theta = [theta12, theta13, theta23]');
+disp(theta);
+
+fprintf('x1과 x2 사이의 각도 = %.6f degree\n', theta12);
+fprintf('x1과 x3 사이의 각도 = %.6f degree\n', theta13);
+fprintf('x2와 x3 사이의 각도 = %.6f degree\n', theta23);
+
+fprintf('가장 작은 각도 = %.6f degree\n', thetaMin);
+fprintf('가장 방향이 비슷한 센서 번호 = Sensor %d 와 Sensor %d\n', bestPair(1), bestPair(2));
+
+%% 10. 전기회로의 전류 벡터 계산
+
+clear; clc;
+
+A = [9 -2 -1;
+     -2 8 -3;
+     -1 -3 10];
+
+b = [15;
+     7;
+     11];
+
+I = A \ b;
+
+detA = det(A);
+
+absI = abs(I);
+
+[maxAbsI, idx] = max(absI);
+
+disp('전류 벡터 I');
+disp(I);
+
+fprintf('det(A) = %.6f\n', detA);
+
+if abs(detA) > 1e-12
+    disp('A는 가역행렬이다.');
+else
+    disp('A는 가역행렬이 아니다.');
+end
+
+disp('abs(I)');
+disp(absI);
+
+fprintf('절댓값이 가장 큰 전류 = %.6f\n', maxAbsI);
+fprintf('절댓값이 가장 큰 전류의 번호 = i%d\n', idx);
+
+%% 11. 음향 시스템 출력 신호와 감쇠 보조곡선
+
+clear; clc;
+
+t = 0:0.01:40;
+
+y = exp(-0.04*t) .* (sin(4*t) + 0.6*sin(9*t));
+
+u = 1.6 * exp(-0.04*t);
+l = -1.6 * exp(-0.04*t);
+
+figure;
+plot(t, y, 'b-', 'LineWidth', 1.2);
+hold on;
+plot(t, u, 'r--', 'LineWidth', 1.2);
+plot(t, l, 'k--', 'LineWidth', 1.2);
+grid on;
+
+xlabel('t (sec)');
+ylabel('Signal value');
+title('Acoustic Output Signal with Envelope Curves');
+legend('y(t)', 'u(t)', 'l(t)');
+
+figure;
+semilogy(t, abs(y), 'b-', 'LineWidth', 1.2);
+grid on;
+xlabel('t (sec)');
+ylabel('|y(t)|');
+title('Semilogy Plot of |y(t)|');
+
+u0 = u(1);
+u40 = u(end);
+
+fprintf('t = 0일 때 u(t) = %.6f\n', u0);
+fprintf('t = 40일 때 u(t) = %.6f\n', u40);
+
+%% 12. 머신러닝 모델의 학습 손실 분석
+
+clear; clc;
+
+epoch = [1, 2, 5, 10, 20, 50, 100, 200];
+loss = [3.1, 2.4, 1.7, 1.2, 0.83, 0.36, 0.14, 0.06];
+
+figure;
+plot(epoch, loss, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('epoch');
+ylabel('loss');
+title('Training Loss');
+
+figure;
+semilogy(epoch, loss, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('epoch');
+ylabel('loss');
+title('Training Loss in Log Scale');
+
+r = loss(2:end) ./ loss(1:end-1);
+
+meanRatio = mean(r);
+
+disp('비율 벡터 r');
+disp(r);
+
+fprintf('비율 벡터 r의 평균 = %.6f\n', meanRatio);
+비율 벡터 r의 평균이 1보다 작으므로 loss가 전반적으로 감소한다고 판단할 수 있다.
