@@ -1,0 +1,246 @@
+%% Problem 1
+clear; clc; close all
+
+Hour = [6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16; 17];
+SolarGen = [0.5; 1.2; 2.4; 3.8; 4.6; 5.1; 5.4; 5.0; 4.2; 3.0; 1.7; 0.8];
+Demand = [1.8; 2.0; 2.3; 2.7; 3.1; 3.4; 3.8; 4.0; 3.7; 3.4; 3.0; 2.5];
+Battery = [3.2; 3.0; 3.1; 3.8; 4.5; 5.2; 5.9; 6.3; 6.5; 6.1; 5.4; 4.7];
+
+A = [Hour SolarGen Demand Battery];
+writematrix(A, "solar system.txt", "Delimiter", "tab");
+
+B = load("solar system.txt");
+hour = B(:, 1);
+solar = B(:, 2);
+demand = B(:, 3);
+battery = B(:, 4);
+
+netPower = solar - demand
+
+figure
+plot(hour, netPower, "-o", "LineWidth", 1.5)
+xlabel("Hour")
+ylabel("Net Power")
+title("Solar System Net Power")
+grid on
+
+%% Problem 2
+clear; clc; close all
+
+D = [1 2.1 8 12;
+     2 3.4 13 19;
+     3 1.8 7 10;
+     4 5.2 21 31;
+     5 4.7 19 28;
+     6 6.0 25 36;
+     7 3.1 12 18;
+     8 5.8 24 35];
+
+writematrix(D, "drone delivery.txt", "Delimiter", "tab");
+D2 = load("drone delivery.txt");
+
+RouteID = D2(:, 1);
+DistanceKm = D2(:, 2);
+TimeMin = D2(:, 3);
+BatteryUsed = D2(:, 4);
+
+speed = DistanceKm ./ TimeMin
+BatteryPerKm = BatteryUsed ./ DistanceKm
+
+idx = BatteryPerKm > 6;
+HighBatteryRoutes = [RouteID(idx) DistanceKm(idx) BatteryPerKm(idx)]
+
+%% Problem 3
+clear; clc; close all
+
+Zone = ["Z1"; "Z2"; "Z3"; "Z4"; "Z5"; "Z6"; "Z7"; "Z8"];
+Temp = [22.5; 24.1; 21.8; 25.3; 23.7; 26.0; 22.9; 24.8];
+Humidity = [61; 58; 67; 55; 62; 53; 65; 57];
+Light = [420; 460; 390; 520; 480; 550; 410; 500];
+CO2 = [510; 540; 495; 610; 575; 640; 520; 600];
+
+Farm = table(Zone, Temp, Humidity, Light, CO2);
+Farm.EnvIndex = 0.4*Farm.Temp + 0.01*Farm.Light + 0.02*Farm.CO2;
+Farm
+
+HighEnv = Farm(Farm.EnvIndex >= 25, :);
+HighEnv(:, ["Zone", "Temp", "Light", "EnvIndex"])
+
+%% Problem 4
+clear; clc; close all
+
+Machine = ["M1"; "M2"; "M3"; "M4"; "M5"; "M6"; "M7"; "M8"; "M9"; "M10"];
+Vibration = [1.8; 2.4; 1.5; 3.1; 2.7; 1.9; 3.5; 2.2; 1.6; 2.9];
+Temp = [68; 72; 65; 78; 74; 69; 82; 71; 66; 76];
+Power = [4.5; 5.1; 4.2; 6.3; 5.7; 4.8; 6.8; 5.0; 4.4; 6.0];
+Defect = [2; 5; 1; 8; 6; 3; 10; 4; 1; 7];
+
+Factory = table(Machine, Vibration, Temp, Power, Defect);
+Factory.RiskScore = Factory.Vibration .* Factory.Temp ./ Factory.Power;
+Factory
+
+RiskMachines = Factory(Factory.RiskScore >= 35 & Factory.Defect >= 6, :);
+RiskMachines(:, ["Machine", "RiskScore", "Defect"])
+
+writetable(Factory, "factory risk.csv");
+
+%% Problem 5
+clear; clc; close all
+
+url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data';
+
+Abalone = readtable(url, ...
+    'FileType', 'text', ...
+    'ReadVariableNames', false, ...
+    'Delimiter', ',');
+
+Abalone.Properties.VariableNames = ...
+    {'Sex', 'Length', 'Diameter', 'Height', 'WholeWeight', ...
+     'ShuckedWeight', 'VisceraWeight', 'ShellWeight', 'Rings'};
+
+AbaloneWeights = Abalone(:, {'WholeWeight', 'ShellWeight', 'Rings'})
+
+OldMale = Abalone(string(Abalone.Sex) == "M" & Abalone.Rings >= 15, :);
+
+OldMale(:, {'Sex', 'Length', 'WholeWeight', 'Rings'})
+%% Problem 6
+% Problem 5에서 만든 Abalone table을 그대로 사용한다.
+
+Abalone.ShellRatio = Abalone.ShellWeight ./ Abalone.WholeWeight;
+
+HardShell = Abalone(Abalone.ShellRatio >= 0.25 & Abalone.Rings >= 12, :);
+HardShell(:, ["Sex", "WholeWeight", "ShellWeight", "ShellRatio", "Rings"])
+
+ratioData = HardShell{:, "ShellRatio"};
+
+%% Problem 7
+clear; clc; close all
+
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv";
+Fire = readtable(url);
+
+temp = Fire.temp;
+RH = Fire.RH;
+wind = Fire.wind;
+rain = Fire.rain;
+area = Fire.area;
+
+HotDry = temp >= 25 & RH <= 35;
+HotDryFires = Fire(HotDry, :);
+HotDryFires(:, ["month", "day", "temp", "RH", "wind", "area"])
+
+%% Problem 8
+% Problem 7에서 불러온 Fire table을 그대로 사용한다.
+
+Fire.RiskIndex = Fire.temp .* Fire.wind ./ Fire.RH;
+
+RiskFire = Fire(Fire.RiskIndex >= 2 & Fire.area > 0, :);
+RiskFire(:, ["month", "day", "temp", "RH", "wind", "area", "RiskIndex"])
+
+writetable(RiskFire, "forest risk.csv");
+
+%% Problem 9
+clear; clc; close all
+
+P = readtable("penguins.csv", "VariableNamingRule", "preserve");
+P.Properties.VariableNames
+
+P = renameVar(P, ["species", "Species"], "species");
+P = renameVar(P, ["island", "Island"], "island");
+P = renameVar(P, ["body mass g", "body_mass_g", "body mass (g)", "Body Mass (g)"], "body_mass_g");
+P = renameVar(P, ["sex", "Sex"], "sex");
+
+HeavyPenguins = P(P.body_mass_g >= 4500, :);
+HeavyPenguins(:, ["species", "island", "body_mass_g", "sex"])
+
+LargeGentoo = P(strcmpi(string(P.species), "Gentoo") & P.body_mass_g >= 5000, :);
+
+%% Problem 10
+% Problem 9에서 불러온 P table을 사용한다.
+
+P = renameVar(P, ["bill length mm", "bill_length_mm", "bill length (mm)", "culmen_length_mm"], "bill_length_mm");
+P = renameVar(P, ["bill depth mm", "bill_depth_mm", "bill depth (mm)", "culmen_depth_mm"], "bill_depth_mm");
+
+P.BillRatio = P.bill_length_mm ./ P.bill_depth_mm;
+
+LongBill = P(P.BillRatio >= 2.8, :);
+LongBill(:, ["species", "bill_length_mm", "bill_depth_mm", "BillRatio"])
+
+billRatioData = LongBill{:, "BillRatio"};
+
+%% Problem 11
+clear; clc; close all
+
+H = readtable("heart_failure.csv", "VariableNamingRule", "preserve");
+H.Properties.VariableNames
+
+H = renameVar(H, ["age", "Age"], "age");
+H = renameVar(H, ["ejection fraction", "ejection_fraction", "Ejection Fraction"], "ejection_fraction");
+H = renameVar(H, ["serum creatinine", "serum_creatinine", "Serum Creatinine"], "serum_creatinine");
+H = renameVar(H, ["serum sodium", "serum_sodium", "Serum Sodium"], "serum_sodium");
+H = renameVar(H, ["DEATH EVENT", "DEATH_EVENT", "death event"], "DEATH_EVENT");
+
+HighRisk = H(H.age >= 70 & H.ejection_fraction <= 35, :);
+HighRisk(:, ["age", "ejection_fraction", "serum_creatinine", "serum_sodium", "DEATH_EVENT"])
+
+DeathGroup = H(H.DEATH_EVENT == 1, :);
+SurvivalGroup = H(H.DEATH_EVENT == 0, :);
+
+%% Problem 12
+% Problem 11에서 불러온 H table을 사용한다.
+
+H.RiskScore = H.age ./ H.ejection_fraction + H.serum_creatinine;
+
+RiskScoreGroup = H(H.RiskScore >= 4, :);
+RiskScoreGroup(:, ["age", "ejection_fraction", "serum_creatinine", "RiskScore", "DEATH_EVENT"])
+
+writetable(RiskScoreGroup, "heart risk group.csv");
+
+%% Problem 13
+clear; clc; close all
+
+B = readtable("bank-full.csv", "Delimiter", ";", "VariableNamingRule", "preserve");
+B.Properties.VariableNames
+
+B = renameVar(B, ["age", "Age"], "age");
+B = renameVar(B, ["balance", "Balance"], "balance");
+B = renameVar(B, ["loan", "Loan"], "loan");
+B = renameVar(B, ["y", "Y"], "y");
+
+age = B.age;
+balance = B.balance;
+loan = B.loan;
+y = B.y;
+
+T1 = B(age >= 40 & balance >= 2000 & strcmpi(string(loan), "no"), :);
+T2 = T1(:, ["age", "balance", "y"]);
+
+T2.NewFlag = double(strcmpi(string(T2.y), "yes"));
+
+Subscribed = T2(T2.NewFlag == 1, :);
+balanceVec = Subscribed{:, "balance"};
+avgBalance = mean(balanceVec)
+
+writetable(Subscribed, "bank selected.csv");
+
+%% Local helper function
+function T = renameVar(T, candidates, newName)
+    candidates = string(candidates);
+    newName = char(newName);
+    vars = string(T.Properties.VariableNames);
+
+    normalizedVars = normalizeName(vars);
+    normalizedCandidates = normalizeName(candidates);
+    idx = find(ismember(normalizedVars, normalizedCandidates), 1);
+
+    if isempty(idx)
+        error("Required variable was not found: %s", char(strjoin(candidates, ", ")));
+    end
+
+    T.Properties.VariableNames{idx} = newName;
+end
+
+function out = normalizeName(names)
+    out = lower(regexprep(string(names), "[^A-Za-z0-9]", ""));
+end
+
