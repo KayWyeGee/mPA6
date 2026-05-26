@@ -1,0 +1,476 @@
+%% 1. 결측치와 이상치가 포함된 센서 데이터 정제
+clear; clc; close all;
+
+x = [21, 22, NaN, 23, 24, 120, 25, NaN, 26, 27];
+
+idx_missing = isnan(x);
+
+mu0 = mean(x, "omitnan");
+sig0 = std(x, "omitnan");
+
+idx_outlier = abs(x - mu0) > 3 * sig0;
+
+x_temp = x;
+x_temp(idx_missing | idx_outlier) = NaN;
+
+tempMean = mean(x_temp, "omitnan");
+x_clean = x_temp;
+x_clean(isnan(x_clean)) = tempMean;
+
+mu_clean = mean(x_clean);
+sig_clean = std(x_clean);
+
+disp("Problem 1")
+disp(table(x(:), idx_missing(:), idx_outlier(:), x_clean(:), ...
+    'VariableNames', {'Original', 'Missing', 'Outlier', 'Clean'}))
+disp(mu_clean)
+disp(sig_clean)
+
+figure;
+plot(x, "-o", "LineWidth", 1.5);
+hold on;
+plot(x_clean, "--s", "LineWidth", 1.5);
+xlabel("Index");
+ylabel("Temperature");
+title("Original Data and Cleaned Data");
+legend("Original x", "Cleaned x\_clean", "Location", "best");
+grid on;
+
+%% 2. 열별 Min-Max 정규화
+clear; clc; close all;
+
+A = [10 200 0.5;
+     12 180 0.7;
+     15 220 0.6;
+     20 250 0.9;
+     25 300 1.1];
+
+colMin = min(A);
+colMax = max(A);
+
+A_norm = (A - colMin) ./ (colMax - colMin);
+
+rowMean = mean(A_norm, 2);
+
+[~, idx] = max(rowMean);
+
+bestOriginal = A(idx, :);
+bestNormalized = A_norm(idx, :);
+
+disp("Problem 2")
+disp(A_norm)
+disp(rowMean)
+disp(idx)
+disp(bestOriginal)
+disp(bestNormalized)
+
+%% 3. 무선 통신 채널 table과 Signal-to-Noise 계산
+clear; clc; close all;
+
+Channel = ["CH1"; "CH2"; "CH3"; "CH4"; "CH5"; "CH6"; "CH7"; "CH8"];
+Signal = [18.2; 15.5; 21.0; 11.7; 25.3; 19.4; 28.6; 16.8];
+Noise = [2.1; 3.4; 2.8; 4.2; 3.0; 5.1; 2.9; 3.7];
+
+T = table(Channel, Signal, Noise);
+
+T.SignalToNoise = T.Signal ./ T.Noise;
+
+meanSNR = mean(T.SignalToNoise);
+
+T_high = T(T.SignalToNoise > meanSNR, :);
+
+snrVec = T_high{:, "SignalToNoise"};
+
+varSNR = var(snrVec);
+
+disp("Problem 3")
+disp(T)
+disp(meanSNR)
+disp(T_high)
+disp(snrVec)
+disp(varSNR)
+
+%% 4. UCI Wine 데이터 표준화 기반 이상 관측값 후보
+clear; clc; close all;
+
+Wine = readtable("wine.data", ...
+    "FileType", "text", ...
+    "ReadVariableNames", false, ...
+    "Delimiter", ",");
+
+Wine.Properties.VariableNames = {'Class', 'Alcohol', 'MalicAcid', 'Ash', ...
+    'Alcalinity', 'Magnesium', 'Phenols', 'Flavanoids', 'Nonflavanoid', ...
+    'Proanthocyanins', 'ColorIntensity', 'Hue', 'OD280', 'Proline'};
+
+X = Wine{:, {'Alcohol', 'MalicAcid', 'ColorIntensity'}};
+
+X_std = (X - mean(X)) ./ std(X);
+
+normVec = sqrt(sum(X_std.^2, 2));
+
+cutoff = prctile(normVec, 90);
+
+T_top = Wine(normVec >= cutoff, :);
+
+disp("Problem 4")
+disp(cutoff)
+disp(T_top(:, {'Class', 'Alcohol', 'MalicAcid', 'ColorIntensity'}))
+
+%% 5. 정규분포 데이터와 IQR 기반 이상치 탐지
+clear; clc; close all;
+
+rng(12);
+
+y = 50 + 5 * randn(100, 1);
+
+y(10) = 90;
+y(25) = 95;
+y(40) = 5;
+y(70) = 100;
+y(90) = 0;
+
+Q1 = quantile(y, 0.25);
+Q3 = quantile(y, 0.75);
+
+IQR_val = Q3 - Q1;
+
+lower = Q1 - 1.5 * IQR_val;
+upper = Q3 + 1.5 * IQR_val;
+
+idx_outlier = (y < lower) | (y > upper);
+
+y_clean = y(~idx_outlier);
+
+med_clean = median(y_clean);
+
+disp("Problem 5")
+disp(Q1)
+disp(Q3)
+disp(IQR_val)
+disp(lower)
+disp(upper)
+disp(find(idx_outlier))
+disp(med_clean)
+
+%% 6. 장비 전력 소비량과 처리량의 상관 분석
+clear; clc; close all;
+
+Device = ["D1"; "D2"; "D3"; "D4"; "D5"; "D6"; ...
+          "D7"; "D8"; "D9"; "D10"; "D11"; "D12"];
+Power = [110; 130; 125; 160; 170; 150; 190; 200; 210; 180; 220; 240];
+Throughput = [42; 50; 48; 61; 65; 57; 72; 75; 79; 69; 83; 91];
+
+DeviceData = table(Device, Power, Throughput);
+
+powerData = DeviceData.Power;
+throughputData = DeviceData.Throughput;
+
+R = corrcoef(powerData, throughputData);
+rValue = R(1, 2);
+
+disp("Problem 6")
+disp(DeviceData)
+disp(R)
+disp(rValue)
+
+if rValue >= 0.7
+    disp("Strong correlation")
+else
+    disp("Weak correlation")
+end
+
+figure;
+scatter(powerData, throughputData, 60, "filled");
+xlabel("Power");
+ylabel("Throughput");
+title("Power vs Throughput");
+grid on;
+ax = gca;
+ax.FontSize = 12;
+ax.LineWidth = 1.5;
+
+%% 7. 배터리 소재별 에너지 밀도 요약
+clear; clc; close all;
+
+Material = ["A"; "A"; "A"; "A"; ...
+            "B"; "B"; "B"; "B"; ...
+            "C"; "C"; "C"; "C"];
+EnergyDensity = [245; 252; 238; 260; ...
+                 310; 295; 305; 318; ...
+                 180; 190; 176; 185];
+
+Battery = table(Material, EnergyDensity);
+
+idxA = Battery.Material == "A";
+idxB = Battery.Material == "B";
+idxC = Battery.Material == "C";
+
+meanA = mean(Battery.EnergyDensity(idxA));
+meanB = mean(Battery.EnergyDensity(idxB));
+meanC = mean(Battery.EnergyDensity(idxC));
+
+stdA = std(Battery.EnergyDensity(idxA));
+stdB = std(Battery.EnergyDensity(idxB));
+stdC = std(Battery.EnergyDensity(idxC));
+
+MaterialName = ["A"; "B"; "C"];
+Mean = [meanA; meanB; meanC];
+Std = [stdA; stdB; stdC];
+
+Summary = table(MaterialName, Mean, Std);
+
+G = groupsummary(Battery, "Material", {"mean", "std"}, "EnergyDensity");
+
+disp("Problem 7")
+disp(Battery)
+disp(Summary)
+disp(G)
+
+%% 8. 로봇 주행 실험 변수 분석
+clear; clc; close all;
+
+Speed = [1.2; 1.5; 1.7; 2.0; 2.2; 2.4; 2.6; 2.8; 3.0; 3.2; 3.4; 3.6; 3.8; 4.0; 4.2];
+Torque = [15; 18; 21; 24; 26; 29; 31; 35; 38; 41; 43; 47; 50; 54; 58];
+SlipRate = [0.08; 0.10; 0.12; 0.15; 0.18; 0.21; 0.22; 0.25; 0.27; 0.30; 0.33; 0.35; 0.39; 0.42; 0.45];
+EnergyUse = [42; 48; 53; 61; 66; 72; 77; 85; 91; 98; 105; 113; 121; 130; 140];
+
+Robot = table(Speed, Torque, SlipRate, EnergyUse);
+
+X = table2array(Robot);
+
+figure;
+plotmatrix(X);
+title("Scatter Plot Matrix of Robot Variables");
+
+varVec = var(X);
+
+[~, idxMax] = max(varVec);
+
+maxVarName = string(Robot.Properties.VariableNames{idxMax});
+
+disp("Problem 8")
+disp(Robot)
+disp(varVec)
+disp(idxMax)
+disp(maxVarName)
+
+%% 9. Kaggle Titanic 데이터의 생존 여부별 평균 나이 분석
+clear; clc; close all;
+
+T = readtable("train.csv");
+
+numMissingAge = sum(ismissing(T.Age));
+
+meanAge = mean(T.Age, "omitnan");
+T.Age(ismissing(T.Age)) = meanAge;
+
+muFare = mean(T.Fare, "omitnan");
+sigFare = std(T.Fare, "omitnan");
+
+idxNotFareOutlier = abs(T.Fare - muFare) <= 3 * sigFare;
+
+T_clean = T(idxNotFareOutlier, :);
+
+meanAge0 = mean(T_clean.Age(T_clean.Survived == 0));
+meanAge1 = mean(T_clean.Age(T_clean.Survived == 1));
+
+Survived = [0; 1];
+MeanAge = [meanAge0; meanAge1];
+
+Result = table(Survived, MeanAge);
+
+disp("Problem 9")
+disp(numMissingAge)
+disp(muFare)
+disp(sigFare)
+disp(Result)
+
+%% 10. 세 알고리즘의 Loss와 Accuracy 시각화
+clear; clc; close all;
+
+Epoch = (1:8)';
+LossA = [2.40; 1.95; 1.62; 1.31; 1.05; 0.86; 0.70; 0.58];
+LossB = [2.55; 2.10; 1.80; 1.50; 1.25; 1.03; 0.86; 0.72];
+LossC = [2.70; 2.20; 1.90; 1.63; 1.42; 1.21; 1.05; 0.93];
+AccA = [0.42; 0.50; 0.58; 0.64; 0.70; 0.75; 0.79; 0.82];
+AccB = [0.40; 0.47; 0.53; 0.60; 0.66; 0.70; 0.74; 0.78];
+AccC = [0.38; 0.45; 0.51; 0.57; 0.62; 0.67; 0.70; 0.73];
+
+TrainLog = table(Epoch, LossA, LossB, LossC, AccA, AccB, AccC);
+
+figure;
+tl = tiledlayout(2, 1);
+
+nexttile;
+plot(TrainLog.Epoch, TrainLog.LossA, "-o", "LineWidth", 1.5);
+hold on;
+plot(TrainLog.Epoch, TrainLog.LossB, "-s", "LineWidth", 1.5);
+plot(TrainLog.Epoch, TrainLog.LossC, "-^", "LineWidth", 1.5);
+legend("LossA", "LossB", "LossC", "Location", "best");
+xlabel("Epoch");
+ylabel("Loss");
+title("Loss by Epoch");
+grid on;
+
+nexttile;
+plot(TrainLog.Epoch, TrainLog.AccA, "-o", "LineWidth", 1.5);
+hold on;
+plot(TrainLog.Epoch, TrainLog.AccB, "-s", "LineWidth", 1.5);
+plot(TrainLog.Epoch, TrainLog.AccC, "-^", "LineWidth", 1.5);
+legend("AccA", "AccB", "AccC", "Location", "best");
+xlabel("Epoch");
+ylabel("Accuracy");
+title("Accuracy by Epoch");
+grid on;
+
+title(tl, "Training Dashboard");
+
+disp("Problem 10")
+disp(TrainLog)
+
+%% 11. 5 x 5 필터 응답 행렬의 음수값 정정
+clear; clc; close all;
+
+A = [ 3 -1  5 -2  4;
+     -4  6 -3  2  1;
+      7 -5  8 -1  0;
+     -2  4 -6  9  3;
+      5 -3  2 -4  6];
+
+A_clean = A;
+
+for i = 1:size(A_clean, 1)
+    for j = 1:size(A_clean, 2)
+        if A_clean(i, j) < 0
+            A_clean(i, j) = 0;
+        end
+    end
+end
+
+disp("Problem 11")
+disp("Original A")
+disp(A)
+disp("Cleaned A_clean")
+disp(A_clean)
+
+%% 12. 데이터 생성, 결측치 처리, 이상치 처리, 정규화, 통계 계산 종합
+clear; clc; close all;
+
+rng(12);
+
+t = (1:120)';
+
+signal = 30 + 4 * sin(t / 8) + randn(120, 1);
+
+signal(15) = NaN;
+signal(45) = NaN;
+signal(90) = NaN;
+
+signal(30) = 80;
+signal(75) = -20;
+signal(110) = 95;
+
+idxMissing = isnan(signal);
+numMissing = sum(idxMissing);
+
+signalFilled = signal;
+fillValue = mean(signalFilled, "omitnan");
+signalFilled(idxMissing) = fillValue;
+
+muSignal = mean(signalFilled);
+sigSignal = std(signalFilled);
+
+idxOutlier = abs(signalFilled - muSignal) > 3 * sigSignal;
+
+signalClean = signalFilled;
+signalClean(idxOutlier) = NaN;
+
+validSignal = signalClean(~isnan(signalClean));
+
+normSignal = (validSignal - min(validSignal)) ./ (max(validSignal) - min(validSignal));
+
+finalMean = mean(normSignal);
+finalVar = var(normSignal);
+
+disp("Problem 12")
+disp(numMissing)
+disp(find(idxOutlier))
+disp(finalMean)
+disp(finalVar)
+
+figure;
+tl = tiledlayout(2, 1);
+
+nexttile;
+plot(validSignal, "-o", "LineWidth", 1.2);
+xlabel("Index");
+ylabel("Valid Signal");
+title("Valid Signal after Missing and Outlier Processing");
+grid on;
+
+nexttile;
+plot(normSignal, "-s", "LineWidth", 1.2);
+xlabel("Index");
+ylabel("Normalized Signal");
+title("Min-Max Normalized Signal");
+grid on;
+
+title(tl, "Signal Processing Result");
+
+%% 13. 복잡한 다변수 곡면의 surf 시각화
+clear; clc; close all;
+
+x = -5:0.05:5;
+y = -5:0.05:5;
+
+[X, Y] = meshgrid(x, y);
+
+Z = exp(-0.08 * (X.^2 + Y.^2)) .* sin(3 * X) .* cos(2 * Y) + 0.15 * sin(X .* Y);
+
+figure;
+hSurface = surf(X, Y, Z);
+hold on;
+shading interp;
+colorbar;
+
+xlabel("x-axis");
+ylabel("y-axis");
+zlabel("z=f(x,y)");
+title("Detailed Surface Plot of a Multivariable Function");
+grid on;
+
+ax = gca;
+ax.FontSize = 12;
+
+view(45, 30);
+
+Z0 = zeros(size(Z));
+hPlane = surf(X, Y, Z0, ...
+    "FaceAlpha", 0.25, ...
+    "EdgeColor", "none");
+
+maxZ = max(Z(:));
+minZ = min(Z(:));
+
+[rowMax, colMax] = find(Z == maxZ, 1);
+[rowMin, colMin] = find(Z == minZ, 1);
+
+maxPoint = [X(rowMax, colMax), Y(rowMax, colMax), Z(rowMax, colMax)];
+minPoint = [X(rowMin, colMin), Y(rowMin, colMin), Z(rowMin, colMin)];
+
+hMax = plot3(maxPoint(1), maxPoint(2), maxPoint(3), "rp", ...
+    "MarkerSize", 14, "MarkerFaceColor", "r");
+hMin = plot3(minPoint(1), minPoint(2), minPoint(3), "bo", ...
+    "MarkerSize", 10, "MarkerFaceColor", "b");
+
+legend([hSurface, hPlane, hMax, hMin], ...
+    "Surface", "z=0 plane", "Maximum point", "Minimum point", ...
+    "Location", "best");
+
+saveas(gcf, "complex surface.png");
+
+disp("Problem 13")
+disp(maxZ)
+disp(minZ)
+disp(maxPoint)
+disp(minPoint)
