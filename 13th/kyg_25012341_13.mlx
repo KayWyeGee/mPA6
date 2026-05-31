@@ -1,0 +1,340 @@
+%% Problem 1
+clear; clc; close all;
+rng(13);
+
+nQuestions = 40;
+nStudents = 5000;
+
+p = 0.35 + (0.95 - 0.35) * rand(1, nQuestions);
+correctMat = rand(nStudents, nQuestions) < p;
+
+scores = sum(correctMat, 2);
+meanScore = mean(scores);
+stdScore = std(scores);
+ratioAboveMean = mean(scores >= meanScore);
+
+disp("Problem 1")
+disp("p =")
+disp(p)
+disp("meanScore =")
+disp(meanScore)
+disp("stdScore =")
+disp(stdScore)
+disp("ratioAboveMean =")
+disp(ratioAboveMean)
+
+figure;
+histogram(scores);
+xlabel("Score");
+ylabel("Number of Students");
+title("Distribution of Exam Scores");
+grid on;
+
+
+%% Problem 2
+clear; clc; close all;
+rng(13);
+
+nBoxes = 10000;
+nProducts = 20;
+
+weights = 100 + 4 * randn(nBoxes, nProducts);
+boxMean = mean(weights, 2);
+
+idxFail = boxMean < 98 | boxMean > 102;
+failRate = mean(idxFail);
+
+disp("Problem 2")
+disp("failRate =")
+disp(failRate)
+
+figure;
+histogram(boxMean);
+xline(98, "--", "Lower Limit");
+xline(102, "--", "Upper Limit");
+xlabel("Box Mean Weight");
+ylabel("Number of Boxes");
+title("Histogram of Box Mean Weight");
+grid on;
+
+
+%% Problem 3
+clear; clc; close all;
+rng(13);
+
+nTrials = 100000;
+
+N = randn(nTrials, 1);
+S = 1.8 + N;
+
+idxDetected = S >= 1.2;
+detectionRate = mean(idxDetected);
+
+disp("Problem 3")
+disp("detectionRate =")
+disp(detectionRate)
+
+figure;
+histogram(S);
+xline(1.2, "--", "Threshold");
+xlabel("Received Signal S");
+ylabel("Frequency");
+title("Histogram of Received Signal");
+grid on;
+
+
+%% Problem 4
+clear; clc; close all;
+rng(13);
+
+nDays = 365;
+lambda = 180;
+
+orderCounts = poissrnd(lambda, nDays, 1);
+dailyTotalTime = zeros(nDays, 1);
+
+for d = 1:nDays
+    processingTime = 6 + 2 * randn(orderCounts(d), 1);
+    processingTime(processingTime < 0) = 0;
+    dailyTotalTime(d) = sum(processingTime);
+end
+
+ratioOver1200 = mean(dailyTotalTime > 1200);
+
+disp("Problem 4")
+disp("ratioOver1200 =")
+disp(ratioOver1200)
+
+figure;
+tiledlayout(2, 1);
+
+nexttile;
+plot(1:nDays, orderCounts, "-o");
+xlabel("Day");
+ylabel("Number of Orders");
+title("Daily Order Counts");
+grid on;
+
+nexttile;
+plot(1:nDays, dailyTotalTime, "-o");
+xlabel("Day");
+ylabel("Total Processing Time");
+title("Daily Total Processing Time");
+grid on;
+
+figure;
+scatter(orderCounts, dailyTotalTime, "filled");
+xlabel("Number of Orders");
+ylabel("Total Processing Time");
+title("Relationship between Orders and Processing Time");
+grid on;
+
+
+%% Problem 5
+clear; clc; close all;
+rng(13);
+
+nRepeats = 10000;
+nSensors = 30;
+
+measurements = 25 + 0.8 * randn(nRepeats, nSensors);
+meanMeasurements = mean(measurements, 2);
+
+idxWithinRange = meanMeasurements >= 24.7 & meanMeasurements <= 25.3;
+probWithinRange = mean(idxWithinRange);
+
+singleSensor = measurements(:, 1);
+
+disp("Problem 5")
+disp("probWithinRange =")
+disp(probWithinRange)
+
+figure;
+histogram(singleSensor, "Normalization", "probability");
+hold on;
+histogram(meanMeasurements, "Normalization", "probability");
+xlabel("Measured Temperature");
+ylabel("Probability");
+title("Single Sensor vs Mean of 30 Sensors");
+legend("Single Sensor", "Mean of 30 Sensors");
+grid on;
+
+
+%% Problem 6
+clear; clc; close all;
+rng(13);
+
+nPaths = 5000;
+nDays = 60;
+initialAsset = 100;
+
+dailyReturns = 0.0008 + 0.015 * randn(nPaths, nDays);
+assetPaths = initialAsset * cumprod(1 + dailyReturns, 2);
+
+finalAsset = assetPaths(:, end);
+meanFinalAsset = mean(finalAsset);
+minFinalAsset = min(finalAsset);
+maxFinalAsset = max(finalAsset);
+probLoss = mean(finalAsset < 100);
+
+disp("Problem 6")
+disp("meanFinalAsset =")
+disp(meanFinalAsset)
+disp("minFinalAsset =")
+disp(minFinalAsset)
+disp("maxFinalAsset =")
+disp(maxFinalAsset)
+disp("probLoss =")
+disp(probLoss)
+
+idxPlot = randperm(nPaths, 30);
+
+figure;
+plot(1:nDays, assetPaths(idxPlot, :)');
+xlabel("Day");
+ylabel("Asset Value");
+title("Thirty Simulated Asset Paths");
+grid on;
+
+
+%% Problem 7
+clear; clc; close all;
+rng(13);
+
+nPatients = 300;
+
+arrivalIntervals = exprnd(8, nPatients, 1);
+arrivalTimes = cumsum(arrivalIntervals);
+
+serviceTimes = 10 + 3 * randn(nPatients, 1);
+serviceTimes(serviceTimes < 0) = 1;
+
+startTimes = zeros(nPatients, 1);
+endTimes = zeros(nPatients, 1);
+
+startTimes(1) = arrivalTimes(1);
+endTimes(1) = startTimes(1) + serviceTimes(1);
+
+for i = 2:nPatients
+    startTimes(i) = max(arrivalTimes(i), endTimes(i - 1));
+    endTimes(i) = startTimes(i) + serviceTimes(i);
+end
+
+waitingTimes = startTimes - arrivalTimes;
+
+meanWaitingTime = mean(waitingTimes);
+maxWaitingTime = max(waitingTimes);
+ratioOver20 = mean(waitingTimes > 20);
+
+disp("Problem 7")
+disp("meanWaitingTime =")
+disp(meanWaitingTime)
+disp("maxWaitingTime =")
+disp(maxWaitingTime)
+disp("ratioOver20 =")
+disp(ratioOver20)
+
+figure;
+histogram(waitingTimes);
+xlabel("Waiting Time");
+ylabel("Number of Patients");
+title("Histogram of Waiting Times");
+grid on;
+
+
+%% Problem 8
+clear; clc; close all;
+rng(13);
+
+nTrials = 100000;
+p = [0.72, 0.81, 0.67, 0.90, 0.76];
+
+U = rand(nTrials, 5);
+detectedMat = U < p;
+
+numDetected = sum(detectedMat, 2);
+idxSystemSuccess = numDetected >= 3;
+systemDetectionProb = mean(idxSystemSuccess);
+
+disp("Problem 8")
+disp("systemDetectionProb =")
+disp(systemDetectionProb)
+
+figure;
+histogram(numDetected, -0.5:1:5.5);
+xlabel("Number of Detected Modules");
+ylabel("Frequency");
+title("Histogram of Detected Module Counts");
+xticks(0:5);
+grid on;
+
+
+%% Problem 9
+clear; clc; close all;
+rng(13);
+
+nProducts = 50000;
+
+pass1 = rand(nProducts, 1) < 0.94;
+
+pass2 = false(nProducts, 1);
+pass2(pass1) = rand(sum(pass1), 1) < 0.91;
+
+pass3 = false(nProducts, 1);
+pass3(pass2) = rand(sum(pass2), 1) < 0.88;
+
+finalPass = pass3;
+finalPassRate = mean(finalPass);
+
+failStage1 = sum(~pass1);
+failStage2 = sum(pass1 & ~pass2);
+failStage3 = sum(pass2 & ~pass3);
+numFinalPass = sum(finalPass);
+
+resultCounts = [failStage1, failStage2, failStage3, numFinalPass];
+
+disp("Problem 9")
+disp("finalPassRate =")
+disp(finalPassRate)
+disp("resultCounts = [failStage1, failStage2, failStage3, numFinalPass]")
+disp(resultCounts)
+
+figure;
+bar(resultCounts);
+xticklabels(["Fail Stage 1", "Fail Stage 2", "Fail Stage 3", "Final Pass"]);
+ylabel("Number of Products");
+title("Inspection Result Counts");
+grid on;
+
+
+%% Problem 10
+clear; clc; close all;
+rng(13);
+
+nDays = 10000;
+
+baseUsage = 500;
+serverVariation = 35 * randn(nDays, 1);
+isCoolingOverloaded = rand(nDays, 1) < 0.12;
+
+powerUsage = baseUsage + serverVariation + 120 * isCoolingOverloaded;
+
+ratioOver650 = mean(powerUsage > 650);
+meanOverload = mean(powerUsage(isCoolingOverloaded));
+meanNormal = mean(powerUsage(~isCoolingOverloaded));
+
+disp("Problem 10")
+disp("ratioOver650 =")
+disp(ratioOver650)
+disp("meanOverload =")
+disp(meanOverload)
+disp("meanNormal =")
+disp(meanNormal)
+
+figure;
+histogram(powerUsage);
+xline(650, "--", "650");
+xlabel("Daily Power Usage");
+ylabel("Frequency");
+title("Histogram of Daily Power Usage");
+grid on;
